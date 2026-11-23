@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="col-12">
+    <div class="card bg-light text-dark border-0 shadow mb-4">
+        <div class="card-body p-4">
+            <h2 class="mb-1"><i class="bi bi-shield-lock me-2 text-primary"></i>Security: least-privilege access</h2>
+            <p class="text-muted">The database has three roles (<code>security.sql</code>). This app logs in as the <strong>agent</strong>, not root.
+               The agent can read data and call procedures, but cannot insert, update, or delete table rows directly,
+               so every change passes through the stored procedures and their rule checks.</p>
+            {% if login_name and login_name.startswith('root') %}
+            <div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>The app is connected as <strong>root</strong>. Set <code>DB_USER=agent_user</code> to use the restricted login.</div>
+            {% endif %}
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0">
+                    <thead class="table-dark"><tr><th>Role</th><th>Login</th><th>Can do</th><th>Cannot do</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>airline_reader</strong></td><td><code>reader_user</code></td><td>Read the reporting views and flight, airport, aircraft tables</td><td>See passengers, tickets, or crew; change anything</td></tr>
+                        <tr><td><strong>airline_agent</strong></td><td><code>agent_user</code> (this app)</td><td>Everything the reader can, plus read bookings, tickets, passengers, crew; run the booking, cancel, manifest, and crew procedures</td><td>INSERT, UPDATE, or DELETE any table directly</td></tr>
+                        <tr><td><strong>airline_admin</strong></td><td><code>admin_user</code></td><td>Full control of this database</td><td>Touch any other database</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-light text-dark border-0 shadow">
+        <div class="card-body p-4">
+            <h3 class="mb-1">Try it live</h3>
+            <p class="text-muted">Each button opens a fresh connection as the named login and runs one statement. The write attempts target a row that does not exist and are rolled back, so nothing changes.</p>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-dark"><tr><th>Login</th><th>Statement</th><th>Expected</th><th></th></tr></thead>
+                    <tbody>
+                        {% for t in tests %}
+                        <tr>
+                            <td><code>{{ reader_user if t.who == 'reader' else agent_user }}</code></td>
+                            <td><code>{{ t.sql }}</code><div class="small text-muted">{{ t.why }}</div></td>
+                            <td>{% if t.id in (1, 4, 7) %}<span class="badge bg-success">Allowed</span>{% else %}<span class="badge bg-danger">Denied</span>{% endif %}</td>
+                            <td class="text-end">
+                                <form method="POST" action="{{ url_for('security') }}#result"><input type="hidden" name="test_id" value="{{ t.id }}">
+                                    <button class="btn btn-sm btn-primary text-nowrap"><i class="bi bi-play-fill"></i> Run</button></form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if result %}
+            <div id="result" class="mt-4">
+                <h4>Result</h4>
+                <p class="mb-2"><code>{{ result.user }}</code> ran: <code>{{ result.test.sql }}</code></p>
+                {% if result.allowed %}
+                    <div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i><strong>ALLOWED.</strong> MySQL ran the statement.</div>
+                    {% if result.rows %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead class="table-dark"><tr>{% for c in result.columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+                            <tbody>{% for r in result.rows %}<tr>{% for v in r %}<td>{{ '' if v is none else v }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-danger"><i class="bi bi-x-octagon-fill me-2"></i><strong>DENIED.</strong> <code>{{ result.error }}</code></div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

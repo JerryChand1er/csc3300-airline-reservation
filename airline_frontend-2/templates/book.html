@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="col-12">
+    <div class="card bg-light text-dark border-0 shadow">
+        <div class="card-header bg-light">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item"><a class="nav-link {% if tab == 'new' %}active{% endif %}" data-bs-toggle="tab" href="#tab-new">New booking</a></li>
+                <li class="nav-item"><a class="nav-link {% if tab == 'ticket' %}active{% endif %}" data-bs-toggle="tab" href="#tab-ticket">Ticket an existing booking</a></li>
+                <li class="nav-item"><a class="nav-link {% if tab == 'leg' %}active{% endif %}" data-bs-toggle="tab" href="#tab-leg">Add a connecting flight</a></li>
+            </ul>
+        </div>
+        <div class="card-body p-4 tab-content">
+
+            <!-- NEW BOOKING -->
+            <div class="tab-pane fade {% if tab == 'new' %}show active{% endif %}" id="tab-new">
+                <h2 class="mb-1"><i class="bi bi-ticket-perforated me-2 text-primary"></i>New booking</h2>
+                <p class="text-muted">Creates a booking, adds the flight, and issues the ticket in one step (<code>sp_new_booking</code>). If any rule rejects it, nothing is saved.</p>
+                <form method="POST" action="{{ url_for('book') }}" class="row g-3">
+                    <input type="hidden" name="action" value="new">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="new_passenger">Passenger</label>
+                        <select id="new_passenger" name="passenger_id" class="form-select" required>
+                            <option value="">-- Select passenger --</option>
+                            {% for p in passengers %}<option value="{{ p.passenger_id }}">{{ p.passenger_name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="new_flight">Flight</label>
+                        <select id="new_flight" name="flight_id" class="form-select" required>
+                            <option value="">-- Select flight --</option>
+                            {% for f in flights %}<option value="{{ f.flight_id }}">{{ f.flight_number }} | {{ f.origin }} &rarr; {{ f.destination }} | {{ f.departure_time }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="new_seat">Seat (available only)</label>
+                        <select id="new_seat" name="seat_number" class="form-select" required><option value="">-- Choose a flight first --</option></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="new_fare">Fare ($)</label>
+                        <input type="number" id="new_fare" name="fare_paid" class="form-control" min="0" step="0.01" value="150.00" required>
+                    </div>
+                    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Create booking</button></div>
+                </form>
+            </div>
+
+            <!-- TICKET AN EXISTING BOOKING -->
+            <div class="tab-pane fade {% if tab == 'ticket' %}show active{% endif %}" id="tab-ticket">
+                <h2 class="mb-1"><i class="bi bi-receipt me-2 text-primary"></i>Ticket an existing booking</h2>
+                <p class="text-muted">Sells a seat on one flight of a booking (<code>sp_book_ticket</code>). A Pending booking becomes Confirmed. Try a seat that is already sold to see the database refuse it.</p>
+                <form method="POST" action="{{ url_for('book') }}" class="row g-3">
+                    <input type="hidden" name="action" value="ticket">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="tk_booking">Booking</label>
+                        <select id="tk_booking" name="booking_id" class="form-select" required>
+                            <option value="">-- Select booking --</option>
+                            {% for b in bookings %}<option value="{{ b.booking_id }}">#{{ b.booking_id }} | {{ b.passenger_name }} | {{ b.status }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="tk_flight">Flight in that booking</label>
+                        <select id="tk_flight" name="flight_id" class="form-select" required><option value="">-- Choose a booking first --</option></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="tk_seat">Seat number</label>
+                        <input type="text" id="tk_seat" name="seat_number" class="form-control" list="tk_seat_list" placeholder="e.g. 12A (type any seat to test a rule)" required>
+                        <datalist id="tk_seat_list"></datalist>
+                        <div class="form-text">Suggestions are the seats still available on the chosen flight.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="tk_fare">Fare ($)</label>
+                        <input type="number" id="tk_fare" name="fare_paid" class="form-control" min="0" step="0.01" value="150.00" required>
+                    </div>
+                    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Issue ticket</button></div>
+                </form>
+            </div>
+
+            <!-- ADD A LEG -->
+            <div class="tab-pane fade {% if tab == 'leg' %}show active{% endif %}" id="tab-leg">
+                <h2 class="mb-1"><i class="bi bi-diagram-3 me-2 text-primary"></i>Add a connecting flight</h2>
+                <p class="text-muted">Adds the next leg to a booking (<code>sp_add_leg</code>). A trigger checks that it starts at the airport where the previous leg ended and leaves after it lands. Then issue a ticket for it on the previous tab.</p>
+                <form method="POST" action="{{ url_for('book') }}" class="row g-3">
+                    <input type="hidden" name="action" value="leg">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="leg_booking">Booking</label>
+                        <select id="leg_booking" name="booking_id" class="form-select" required>
+                            <option value="">-- Select booking --</option>
+                            {% for b in bookings %}<option value="{{ b.booking_id }}">#{{ b.booking_id }} | {{ b.passenger_name }} | {{ b.status }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="leg_flight">Flight to add</label>
+                        <select id="leg_flight" name="flight_id" class="form-select" required>
+                            <option value="">-- Select flight --</option>
+                            {% for f in flights %}<option value="{{ f.flight_id }}">{{ f.flight_number }} | {{ f.origin }} &rarr; {{ f.destination }} | {{ f.departure_time }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12"><button class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Add flight to booking</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const SEATS = {{ seat_map | tojson }};                 // flight_id -> [{seat, cls}]
+const BOOKING_FLIGHTS = {{ booking_flights | tojson }}; // booking_id -> [flight_id]
+const FLIGHTS = {{ flights | map(attribute='flight_id') | list | tojson }};
+const FLIGHT_LABELS = {
+{% for f in flights %}  "{{ f.flight_id }}": "{{ f.flight_number }} | {{ f.origin }} to {{ f.destination }} | {{ f.departure_time }}",
+{% endfor %}};
+
+function seatOptions(flightId) {
+    return (SEATS[flightId] || []).map(s => ({seat: s.seat, label: s.seat + " (" + s.cls + ")"}));
+}
+
+// New booking: seat dropdown follows the chosen flight
+document.getElementById("new_flight").addEventListener("change", function () {
+    const sel = document.getElementById("new_seat");
+    sel.innerHTML = "";
+    const opts = seatOptions(this.value);
+    if (!this.value) { sel.innerHTML = '<option value="">-- Choose a flight first --</option>'; return; }
+    if (!opts.length) { sel.innerHTML = '<option value="">No seats available</option>'; return; }
+    opts.forEach(o => sel.add(new Option(o.label, o.seat)));
+});
+
+// Ticket form: only the flights of the chosen booking, and seat suggestions
+document.getElementById("tk_booking").addEventListener("change", function () {
+    const sel = document.getElementById("tk_flight");
+    sel.innerHTML = '<option value="">-- Select flight --</option>';
+    (BOOKING_FLIGHTS[this.value] || []).forEach(fid => sel.add(new Option(FLIGHT_LABELS[fid], fid)));
+    document.getElementById("tk_seat_list").innerHTML = "";
+});
+document.getElementById("tk_flight").addEventListener("change", function () {
+    const dl = document.getElementById("tk_seat_list");
+    dl.innerHTML = "";
+    seatOptions(this.value).forEach(o => { const op = document.createElement("option"); op.value = o.seat; op.label = o.label; dl.appendChild(op); });
+});
+</script>
+{% endblock %}

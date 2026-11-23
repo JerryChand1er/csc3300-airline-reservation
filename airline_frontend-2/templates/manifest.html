@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="col-12">
+    <div class="card bg-light text-dark border-0 shadow">
+        <div class="card-body p-4">
+            <h2 class="mb-1"><i class="bi bi-card-list me-2 text-primary"></i>Manifest: {{ flight.flight_number }}</h2>
+            <p class="text-muted mb-1">{{ flight.origin }} &rarr; {{ flight.destination }} | departs {{ flight.departure_time }} UTC | arrives {{ flight.arrival_time }} UTC</p>
+            <p class="text-muted small">Result of <code>CALL sp_flight_manifest({{ flight.flight_id }})</code></p>
+            <hr>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-dark"><tr><th>Seat</th><th>Class</th><th>Passenger</th><th>Booking</th><th>Fare</th></tr></thead>
+                    <tbody>
+                        {% for r in rows %}
+                        <tr>
+                            <td>{{ r.seat_number }}</td><td>{{ r.seat_class }}</td><td>{{ r.passenger }}</td>
+                            <td><a href="{{ url_for('bookings', booking_id=r.booking_id) }}">#{{ r.booking_id }}</a></td>
+                            <td>${{ r.fare_paid }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center py-4 text-muted">No tickets sold on this flight yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <a href="{{ url_for('flights') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to flights</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

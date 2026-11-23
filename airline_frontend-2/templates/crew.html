@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="col-12">
+    <div class="card bg-light text-dark border-0 shadow mb-4">
+        <div class="card-body p-4">
+            <h2 class="mb-1"><i class="bi bi-people me-2 text-primary"></i>Crew Assignment &amp; Rules</h2>
+            <p class="text-muted">Assign crew to flights (<code>sp_assign_crew</code>). Database triggers enforce certification, overlapping flights, and 10 hours of rest. Try an invalid assignment to see the rule fire.</p>
+            <hr>
+            <form method="POST" action="{{ url_for('crew') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="crew_id" class="form-label fw-bold">Crew Member</label>
+                    <select id="crew_id" name="crew_id" class="form-select" required>
+                        <option value="">-- Select crew --</option>
+                        {% for c in crew_members %}<option value="{{ c.crew_id }}">{{ c.name }} ({{ c.role }})</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="flight_id" class="form-label fw-bold">Flight</label>
+                    <select id="flight_id" name="flight_id" class="form-select" required>
+                        <option value="">-- Select flight --</option>
+                        {% for f in flights %}<option value="{{ f.flight_id }}">{{ f.flight_number }} ({{ f.aircraft_model }}) | {{ f.origin }}&rarr;{{ f.destination }} | {{ f.departure_time }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="role_on_flight" class="form-label fw-bold">Role on Flight</label>
+                    <select id="role_on_flight" name="role_on_flight" class="form-select" required>
+                        <option>Captain</option><option>First Officer</option><option>Lead Attendant</option><option>Attendant</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100 text-nowrap">Assign</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card bg-light text-dark border-0 shadow h-100">
+                <div class="card-body p-4">
+                    <h3 class="mb-3">Current assignments</h3>
+                    <div class="table-responsive" style="max-height:460px; overflow-y:auto;">
+                        <table class="table table-striped table-sm align-middle">
+                            <thead class="table-dark"><tr><th>Flight</th><th>Departs (UTC)</th><th>Crew member</th><th>Role</th><th></th></tr></thead>
+                            <tbody>
+                                {% for a in assignments %}
+                                <tr><td><strong>{{ a.flight_number }}</strong></td><td>{{ a.departure_time }}</td><td>{{ a.crew_name }}</td><td>{{ a.role_on_flight }}</td>
+                                    <td class="text-end"><form method="POST" action="{{ url_for('crew') }}" class="d-inline" onsubmit="return confirm('Remove {{ a.crew_name }} from {{ a.flight_number }}?');">
+                                        <input type="hidden" name="action" value="unassign"><input type="hidden" name="crew_id" value="{{ a.crew_id }}"><input type="hidden" name="flight_id" value="{{ a.flight_id }}">
+                                        <button class="btn btn-sm btn-outline-danger py-0">Remove</button></form></td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card bg-light text-dark border-0 shadow h-100">
+                <div class="card-body p-4">
+                    <h3 class="mb-3">Certifications</h3>
+                    <div class="table-responsive" style="max-height:460px; overflow-y:auto;">
+                        <table class="table table-striped table-sm align-middle">
+                            <thead class="table-dark"><tr><th>Crew member</th><th>Model</th><th>Expires</th></tr></thead>
+                            <tbody>
+                                {% for c in certs %}
+                                <tr>
+                                    <td>{{ c.crew_name }}</td><td>{{ c.model_name }}</td>
+                                    <td>{{ c.expiration_date }} {% if c.cert_status == 'Expired' %}<span class="badge bg-danger">Expired</span>{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

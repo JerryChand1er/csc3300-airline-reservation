@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="col-12">
+    <div class="card bg-light text-dark border-0 shadow">
+        <div class="card-body p-4">
+            <h2><i class="bi bi-exclamation-octagon text-danger me-2"></i>Can't reach the database</h2>
+            <p class="lead mb-2">MySQL said: <code>{{ message }}</code></p>
+            <p>The app tried to connect to <code>{{ db }}</code> on <code>{{ host }}:{{ port }}</code> as <code>{{ user }}</code>. Check that:</p>
+            <ol>
+                <li>MySQL is running.</li>
+                <li>You ran the SQL files in order, including <code>06_security.sql</code> and <code>07_frontend_support.sql</code>.</li>
+                <li>The password matches (set <code>DB_USER</code> / <code>DB_PASSWORD</code>; see the README).</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
