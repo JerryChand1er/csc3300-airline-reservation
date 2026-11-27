@@ -1,6 +1,7 @@
 # Airline Reservation & Flight Scheduling System
 
-CSC 3300-002, Database Management Systems (Professor Maanak Gupta)
+CSC 3300-002, Database Management Systems
+
 **Team:** Jerry Chandler, Teagan Tobias, Logan Wolford
 
 A MySQL database for an airline with a Flask web app on top. Triggers and stored procedures inside the database stop double-booked seats, invalid connecting flights and crew rest violations.
