@@ -21,7 +21,7 @@ A MySQL database for an airline with a Flask web app on top. Triggers and stored
 
 ```
 sql/                  database scripts and queries
-airline_frontend-2/   Flask web app (see its README for details)
+frontend/   Flask web app (see its README for details)
 docs/                 final report, appendix and presentation
 ```
 
@@ -34,20 +34,20 @@ sql/airline_res_create_tables.sql
 sql/airline_sample_data.sql
 sql/views_procedures_triggers.sql
 sql/security.sql
-airline_frontend-2/sql/07_frontend_support.sql
+frontend/sql/07_frontend_support.sql
 ```
 
 **2. Start the web app.**
 
 ```
-cd airline_frontend-2
+cd frontend
 pip install -r requirements.txt
 python app.py
 ```
 
 **3. Open** http://127.0.0.1:5000 in your browser.
 
-The app connects as `agent_user` (password `Agent#2026pw`, created by `security.sql`). To use a different login, set the `DB_USER` and `DB_PASSWORD` environment variables before running `python app.py`. Other settings: `DB_HOST`, `DB_PORT`, `DB_NAME`. See `airline_frontend-2/README.md` for more.
+The app connects as `agent_user` (password `Agent#2026pw`, created by `security.sql`). To use a different login, set the `DB_USER` and `DB_PASSWORD` environment variables before running `python app.py`. Other settings: `DB_HOST`, `DB_PORT`, `DB_NAME`. See `frontend/README.md` for more.
 
 ## Using the app
 
