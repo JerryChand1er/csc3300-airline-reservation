@@ -1,29 +1,55 @@
 # Airline Reservation & Flight Scheduling System
 
-CSC 3300-002 database project: Jerry Chandler, Teagan Tobias, Logan Wolford
+CSC 3300-002, Database Management Systems (Professor Maanak Gupta)
+**Team:** Jerry Chandler, Teagan Tobias, Logan Wolford
 
-## About
-
-A MySQL database for an airline. It stores the fleet, flight schedule, crew, seats, passengers, bookings, and tickets. Scheduling and booking rules are enforced inside the database, so errors such as a double-booked aircraft or a seat sold twice cannot be saved.
-
-**Requires:** MySQL 8.0.16 or later.
+A MySQL database for an airline with a Flask web app on top. Triggers and stored procedures inside the database stop double-booked seats, invalid connecting flights and crew rest violations.
 
 ## What's included
 
-- **Database design:** 12 tables in 3NF covering aircraft, airports, flights, seats, crew, passengers, bookings, and tickets.
-- **Sample data:** 12 flights over three days, with crew, passengers, bookings, and tickets.
-- **Views, a function, procedures, and triggers** that enforce the business rules and support common tasks such as booking and cancelling.
-- **12 example queries** for reports like flight schedules, revenue by route, load factor, and crew utilization.
-- **Rule tests (optional):** a test report that tries to break each rule.
+- **12 tables in 3NF:** aircraft, airports, flights, seats, crew, passengers, bookings, tickets and more.
+- **Views, a function, stored procedures and 7 triggers** that enforce the business rules.
+- **12 queries:** joins, aggregates, subqueries and a recursive CTE.
+- **Role-based security:** reader, agent and admin roles with least-privilege logins.
+- **16 rule tests** (`sp_run_rule_tests`) that prove the rules work.
+- **Flask web app:** search flights, book passengers, manage crew, run the 12 queries and demo security.
 
-## How to run
+**Requires:** MySQL 8.0.16+ and Python 3.10+
 
-Run the files in this order:
+## Setup
 
-1. `airline_res_create_tables.sql` (creates the database and tables; resets everything)
-2. `airline_sample_data.sql`
-3. `views_procedures_triggers.sql`
-4. `queries.sql` (run one query at a time)
-5. `rule_tests.sql` (optional; all 16 tests should say PASS)
+**1. Build the database.** Run these files in order as `root` (or another admin account), in MySQL Workbench or with `mysql -u root -p < file.sql`:
 
-Run steps 1 to 3 first and in order, since the queries and tests depend on them.
+```
+sql/01_create_tables.sql
+sql/02_sample_data.sql
+sql/03_views_procedures_triggers.sql
+sql/04_security.sql
+sql/05_frontend_support.sql
+```
+
+**2. Start the web app.**
+
+```
+cd frontend
+pip install -r requirements.txt
+python app.py
+```
+
+**3. Open** http://127.0.0.1:5000 in your browser.
+
+The app connects as `agent_user` (password `Agent#2026pw`, created by `04_security.sql`). To use a different login, set the `DB_USER` and `DB_PASSWORD` environment variables before running `python app.py`. Other settings: `DB_HOST`, `DB_PORT`, `DB_NAME`.
+
+## Using the app
+
+- **Flights:** search by airport and open a flight's passenger manifest.
+- **Book / Bookings:** create bookings, ticket seats, add connecting flights, cancel.
+- **Crew:** assign or remove crew on a flight.
+- **Queries:** run each of the 12 queries.
+- **Security:** run fixed tests as the reader and agent logins and see what MySQL allows or denies.
+
+## Other notes
+
+- `sql/queries.sql` and `sql/rule_tests.sql` can also be run on their own in Workbench.
+- The app changes the real database. To reset the data, re-run the five SQL files above.
+- Demo logins (`reader_user`, `agent_user`, `admin_user`) are for class use only. Security is at the database level; the website has no end-user login.
