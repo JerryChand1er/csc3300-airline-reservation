@@ -15,31 +15,39 @@ A MySQL database for an airline with a Flask web app on top. Triggers and stored
 - **16 rule tests** (`sp_run_rule_tests`) that prove the rules work.
 - **Flask web app:** search flights, book passengers, manage crew, run the 12 queries and demo security.
 
-**Requires:** MySQL 8.0.16+ and Python 3.10+
+**Requires:** MySQL 8.0.16+ and Python 3.9+
+
+## Repository layout
+
+```
+sql/                  database scripts and queries
+airline_frontend-2/   Flask web app (see its README for details)
+docs/                 final report, appendix and presentation
+```
 
 ## Setup
 
 **1. Build the database.** Run these files in order as `root` (or another admin account), in MySQL Workbench or with `mysql -u root -p < file.sql`:
 
 ```
-sql/01_create_tables.sql
-sql/02_sample_data.sql
-sql/03_views_procedures_triggers.sql
-sql/04_security.sql
-sql/05_frontend_support.sql
+sql/airline_res_create_tables.sql
+sql/airline_sample_data.sql
+sql/views_procedures_triggers.sql
+sql/security.sql
+airline_frontend-2/sql/07_frontend_support.sql
 ```
 
 **2. Start the web app.**
 
 ```
-cd frontend
+cd airline_frontend-2
 pip install -r requirements.txt
 python app.py
 ```
 
 **3. Open** http://127.0.0.1:5000 in your browser.
 
-The app connects as `agent_user` (password `Agent#2026pw`, created by `04_security.sql`). To use a different login, set the `DB_USER` and `DB_PASSWORD` environment variables before running `python app.py`. Other settings: `DB_HOST`, `DB_PORT`, `DB_NAME`.
+The app connects as `agent_user` (password `Agent#2026pw`, created by `security.sql`). To use a different login, set the `DB_USER` and `DB_PASSWORD` environment variables before running `python app.py`. Other settings: `DB_HOST`, `DB_PORT`, `DB_NAME`. See `airline_frontend-2/README.md` for more.
 
 ## Using the app
 
